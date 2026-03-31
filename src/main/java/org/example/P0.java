@@ -1,4 +1,4 @@
-package org.example.aoc2015;
+package org.example;
 
 import org.example.domain.AocProblem;
 

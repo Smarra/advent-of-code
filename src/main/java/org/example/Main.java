@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 import org.example.*;
-import org.example.aoc2015.*;
+import org.example.aoc2019.*;
 
 public class Main {
     public static void main(String[] args) throws ClassNotFoundException {
@@ -24,7 +24,7 @@ public class Main {
             System.exit(1);
         }
 
-        P4 problem = new P4();
+        P1 problem = new P1();
         long result1 = problem.solvePart1(input);
         System.out.println("Part1: " + result1);
 
