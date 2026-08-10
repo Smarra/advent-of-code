@@ -1,17 +1,11 @@
 package org.example.aoc2019;
 
 import org.example.domain.AocProblem;
+import org.example.utils.Utils.Pair;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-
-record Pair(int x, int y) {
-    public Pair add(Pair p) {
-        return new Pair(this.x + p.x, this.y + p.y);
-    }
-};
 
 public class P3 implements AocProblem {
 
