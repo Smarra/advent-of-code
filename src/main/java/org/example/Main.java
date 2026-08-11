@@ -13,15 +13,15 @@ public class Main {
         File inputFile = new File("src/main/resources/input.txt");
 
         try (Scanner scanner = new Scanner(inputFile)) {
-            while (scanner.hasNext()) {
-                input.add(scanner.next());
+            while (scanner.hasNextLine()) {
+                input.add(scanner.nextLine());
             }
         } catch(FileNotFoundException e) {
             System.out.println("Exception occured: " + e.getMessage());
             System.exit(1);
         }
 
-        P1 problem = new P1();
+        P2 problem = new P2();
         long result1 = problem.solvePart1(input);
         System.out.println("Part1: " + result1);
 
