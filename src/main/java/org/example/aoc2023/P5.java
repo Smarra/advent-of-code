@@ -7,6 +7,7 @@ import java.util.Arrays;
 
 public class P5 implements AocProblem {
     public record Range(long destStart, long sourceStart, long length){};
+    public record RangeRaw(long start, long end){};
 
     public long getLocation(ArrayList<ArrayList<Range>> iter, long value) {
         for (ArrayList<Range> ranges : iter) {
@@ -19,6 +20,82 @@ public class P5 implements AocProblem {
         }
 
         return value;
+    }
+
+    // this assumes the currRange is included in the inputRange
+    public RangeRaw turnRange(Range inputRange, RangeRaw currRange) {
+        return new RangeRaw(
+            inputRange.destStart + (currRange.start - inputRange.sourceStart),
+            inputRange.destStart + (currRange.end - inputRange.sourceStart)
+        );
+    }
+
+    public long getLocation(ArrayList<ArrayList<Range>> iter, RangeRaw rawRange) {
+        ArrayList<RangeRaw> stillLeftToVerify = new ArrayList<>();
+        stillLeftToVerify.add(rawRange);
+
+        ArrayList<RangeRaw> nextRound = new ArrayList<>();
+
+        for (ArrayList<Range> inputRanges : iter) {
+            for (Range inputRange : inputRanges) {
+                RangeRaw comp = new RangeRaw(inputRange.sourceStart, inputRange.sourceStart + inputRange.length);
+
+                for (int i = 0; i < stillLeftToVerify.size(); i++) {
+                    RangeRaw currRange = stillLeftToVerify.get(i);
+
+                    // 0. outside
+                    if (currRange.start >= comp.end || currRange.end <= comp.start) {
+                        continue;
+                    }
+
+                    // 1. completely included
+                    if (currRange.start >= comp.start && currRange.end <= comp.end) {
+                        nextRound.add(turnRange(inputRange, currRange));
+                        stillLeftToVerify.remove(i);
+                        i--;
+                        continue;
+                    }
+
+                    // 3. right
+                    if (currRange.end > comp.end) {
+                        long leftRange = Long.max(currRange.start, comp.start);
+                        RangeRaw centre = new RangeRaw(leftRange, comp.end);
+                        nextRound.add(turnRange(inputRange, centre));
+
+                        RangeRaw right = new RangeRaw(comp.end, currRange.end);
+                        stillLeftToVerify.add(right);
+                    }
+
+                    // 4. or left
+                    if (currRange.start < comp.start) {
+                        long rightRange = Long.min(currRange.end, comp.end);
+                        RangeRaw centre = new RangeRaw(comp.start, rightRange);
+
+                        RangeRaw newRange = turnRange(inputRange, centre);
+                        if (!nextRound.contains(newRange)) nextRound.add(newRange);
+
+                        RangeRaw left = new RangeRaw(currRange.start, comp.start);
+                        stillLeftToVerify.add(left);
+                    }
+
+                    stillLeftToVerify.remove(i);
+                    i--;
+                }
+            }
+
+            nextRound.addAll(stillLeftToVerify);
+            stillLeftToVerify.clear();
+            stillLeftToVerify.addAll(nextRound);
+            nextRound.clear();
+        }
+
+        long min = Long.MAX_VALUE;
+        for (RangeRaw range : stillLeftToVerify) {
+            if (min > range.start) {
+                min = range.start;
+            }
+        }
+        return min;
     }
 
     @Override
@@ -93,11 +170,10 @@ public class P5 implements AocProblem {
         Long[] seeds = Arrays.stream(seedsStr).map(Long::parseLong).toArray(Long[]::new);
         long min = Long.MAX_VALUE;
         for (int i = 0; i < seeds.length; i+=2) {
-            for (long j = seeds[i]; j < seeds[i] + seeds[i+1]; j++) {
-                long value = getLocation(iter, j);
-                if (value < min) {
-                    min = value;
-                }
+            RangeRaw range = new RangeRaw(seeds[i], seeds[i] + seeds[i+1]);
+            long value = getLocation(iter, range);
+            if (value < min) {
+                min = value;
             }
         }
         return min;
