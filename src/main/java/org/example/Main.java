@@ -21,7 +21,7 @@ public class Main {
             System.exit(1);
         }
 
-        P5 problem = new P5();
+        P6 problem = new P6();
         long result1 = problem.solvePart1(input);
         System.out.println("Part1: " + result1);
 
