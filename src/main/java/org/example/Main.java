@@ -21,9 +21,9 @@ public class Main {
             System.exit(1);
         }
 
-        P11 problem = new P11();
-//        long result1 = problem.solvePart1(input);
-//        System.out.println("Part1: " + result1);
+        P12 problem = new P12();
+        long result1 = problem.solvePart1(input);
+        System.out.println("Part1: " + result1);
 
         long result2 = problem.solvePart2(input);
         System.out.println("Part2: " + result2);
