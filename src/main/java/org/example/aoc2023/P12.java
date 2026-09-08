@@ -7,76 +7,52 @@ import java.util.Arrays;
 
 public class P12 implements AocProblem {
 
-    private int check(char[] s, int[] pos) {
-        int idx = 0;
-        int ct = 0;
-        for (char c : s) {
-            if (c == '?') {
-                return 0;
-            }
-
-            if (c == '.') {
-                if (ct > 0) {
-                    if (pos[idx] != ct) {
-                        return -1;
-                    }
-
-                    idx++;
-                    ct = 0;
-                }
-                continue;
-            }
-
-            ct++;
-
-            if (idx >= pos.length) {
-                return -1;
-            }
-        }
-
-        if (ct > 0) {
-            if (pos[idx] != ct) {
-                return -1;
-            }
-
-            idx++;
-        }
-
-        if (idx != pos.length) {
-            return -1;
-        }
-
-        return 1;
-    }
-
-    private long back(char[] s, int[] pos, int idx, long ct) {
-        int status = check(s, pos);
-        if (status == -1) {
-            return ct;
-        } else if (status == 1) {
-            return ct + 1;
-        }
+    private long back(char[] s, int idx, int gidx, int[] pos, int pidx, Long[][][] memo) {
+        long ct = 0;
 
         if (idx == s.length) {
-            return ct;
+            if (gidx > 0) {
+                if (pidx == pos.length - 1 && pos[pidx] == gidx) {
+                    return 1;
+                }
+            } else {
+                if (pidx == pos.length) {
+                    return 1;
+                }
+            }
+            return 0;
+        }
+        
+        if (memo[idx][pidx][gidx] != null) {
+            return memo[idx][pidx][gidx];
         }
 
-        if (s[idx] == '?') {
-            s[idx] = '.';
-            ct = back(s, pos, idx + 1, ct);
-
-            s[idx] = '#';
-            ct = back(s, pos, idx + 1, ct);
-            s[idx] = '?';
-        } else {
-            ct = back(s, pos, idx + 1, ct);
+        if (s[idx] == '.' || s[idx] == '?') {
+            if (gidx > 0) {
+                if (pidx < pos.length && pos[pidx] == gidx) {
+                    ct += back(s, idx + 1, 0, pos, pidx + 1, memo);
+                }
+            } else {
+                ct += back(s, idx + 1, 0, pos, pidx, memo);
+            }
         }
 
+        if (s[idx] == '#' || s[idx] == '?') {
+            if (pidx < pos.length && gidx + 1 <= pos[pidx]) {
+                ct += back(s, idx + 1, gidx + 1, pos, pidx, memo);
+            }
+        }
+
+        memo[idx][pidx][gidx] = ct;
         return ct;
     }
 
     private long solve(char[] s, int[] pos) {
-        return back(s, pos, 0, 0);
+        int maxGroup = 0;
+        for (int p : pos) maxGroup = Math.max(maxGroup, p);
+
+        Long[][][] memo = new Long[s.length][pos.length + 1][maxGroup + 1];
+        return back(s, 0, 0, pos, 0, memo);
     }
 
     @Override
