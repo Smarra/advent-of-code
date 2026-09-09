@@ -22,7 +22,7 @@ public class P12 implements AocProblem {
             }
             return 0;
         }
-        
+
         if (memo[idx][pidx][gidx] != null) {
             return memo[idx][pidx][gidx];
         }
