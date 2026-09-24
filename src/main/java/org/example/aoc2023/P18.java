@@ -1,21 +1,13 @@
 package org.example.aoc2023;
 
-import org.apache.commons.codec.DecoderException;
-import org.apache.commons.codec.binary.Hex;
 import org.example.domain.AocProblem;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.*;
 
 public class P18 implements AocProblem {
 
     public record Move(Character dir, long steps) {};
     public record Pos(int x, int y){
-        public boolean isValid(int n, int m) {
-            return x >= 0 && x <= n && y >= 0 && y <= m;
-        }
-
         public Pos add(Pos p) {
             return new Pos(x + p.x, y + p.y);
         }
@@ -28,20 +20,27 @@ public class P18 implements AocProblem {
             new Pos(0, -1)
     };
 
-    public void fill(int[][] map, Pos p, int n, int m) {
+    public HashMap<Character, Integer> dirToPos = new HashMap<>() {{
+        put('U', 0);
+        put('R', 1);
+        put('D', 2);
+        put('L', 3);
+    }};
+
+    public void fill(HashSet<Pos> visited, Pos start) {
         Queue<Pos> queue = new LinkedList<>();
-        queue.add(p);
+        queue.add(start);
+        visited.add(start);
 
         while (!queue.isEmpty()) {
-            Pos pos = queue.poll();
+            Pos p = queue.poll();
 
-            if (!p.isValid(n, m)) continue;
-
-            if (map[pos.x][pos.y] == 0) {
-                map[pos.x][pos.y] = 1;
-                for (int i = 0; i < 4; i++) {
-                    queue.add(pos.add(xy[i]));
-                }
+            for (int i = 0; i < 4; i++) {
+                Pos newP = p.add(xy[i]);
+                if (!visited.contains(newP)) {
+                    visited.add(newP);
+                    queue.add(newP);
+                 }
             }
         }
     }
@@ -54,78 +53,31 @@ public class P18 implements AocProblem {
             moves.add(new Move(parts[0].charAt(0), Integer.parseInt(parts[1])));
         }
 
-        int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE;
-        int startX = 0, startY = 0;
-        for (Move move : moves) {
-            if (move.dir == 'U' || move.dir == 'D') {
-                startX += move.dir == 'U' ? (-1) * move.steps : move.steps;
-                minX = Math.min(minX, startX);
-                maxX = Math.max(maxX, startX);
-            }
-            if (move.dir == 'L' || move.dir == 'R') {
-                startY += move.dir == 'L' ? (-1) * move.steps : move.steps;
-                minY = Math.min(minY, startY);
-                maxY = Math.max(maxY, startY);
-            }
-        }
-
-        int n = minX * (-1) + maxX;
-        int m = minY * (-1) + maxY;
-        startX = minX * (-1);
-        startY = minY * (-1);
-
-
-        int[][] map = new int[n + 1][m + 1];
-        map[startX][startY] = 1;
+        HashSet<Pos> visited = new HashSet<>();
+        Pos curr = new Pos(0, 0);
         for (Move move : moves) {
             long steps = move.steps;
-            if (move.dir == 'U') {
-                while (steps != 0) {
-                    startX--;
-                    map[startX][startY] = 1;
-                    steps--;
-                }
-            }
-            if (move.dir == 'D') {
-                while (steps != 0) {
-                    startX++;
-                    map[startX][startY] = 1;
-                    steps--;
-                }
-            }
-            if (move.dir == 'L') {
-                while (steps != 0) {
-                    startY--;
-                    map[startX][startY] = 1;
-                    steps--;
-                }
-            }
-            if (move.dir == 'R') {
-                while (steps != 0) {
-                    startY++;
-                    map[startX][startY] = 1;
-                    steps--;
-                }
+            while (steps != 0) {
+                curr = curr.add(xy[dirToPos.get(move.dir)]);
+                visited.add(curr);
+                steps--;
             }
         }
 
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < m; j++) {
-                if (map[i][j] == 1 && map[i][j + 1] == 1 && map[i + 1][j] == 1 && map[i+1][j+1] == 0) {
-                    fill(map, new Pos(i + 1, j + 1), n, m);
-                    i = n; j = m;
-                }
+        int minX = Integer.MAX_VALUE;
+        int minY = Integer.MAX_VALUE;
+
+        for (Pos p : visited) {
+            if (p.x < minX) {
+                minX = p.x;
+                minY = p.y;
+            } else if (p.x == minX && p.y < minY) {
+                minY = p.y;
             }
         }
+        fill(visited, new Pos(minX + 1, minY + 1));
 
-        int ct = 0;
-        for (int i = 0; i <= n; i++) {
-            for (int j = 0; j <= m; j++) {
-                if (map[i][j] == 1) ct++;
-            }
-        }
-
-        return ct;
+        return visited.size();
     }
 
 
@@ -159,7 +111,7 @@ public class P18 implements AocProblem {
             moves.add(new Move(dirs[dir - '0'], steps));
         }
 
-        long x1 = 0, y1 = 0, x2 = 0, y2 = 0;
+        long x1, y1, x2 = 0, y2 = 0;
         long area = 0, perimiter = 0;
         for (Move m : moves) {
             x1 = x2;
